@@ -8,32 +8,36 @@
 //1.封装epoll的添加、更改、删除功能
 //2.添加定时器到定时管理器中
 //3.获取就绪事件并存储
-//4.处理超时事件
-#include "HttpData.h"
-#include "Timer.h"
-#include <sys/epoll.h>
-#include <vector>
-#include <iterator>
+//4.处理超时事件(实际是由timermanager管理的)
 #include <memory>
+#include <vector>
+#include <iostream>
+#include "Timer.h"
 #include "Channel.h"
+#include "HttpData.h"
+#include <sys/epoll.h>
+using namespace std;
+
 class Epoll
 {
 public:
     Epoll();
     ~Epoll();
-    typedef std::shared_ptr<Channel> SP_Channel;
-    std::vector<SP_Channel> poll();
-    std::vector<SP_Channel> getRevents();
-    void epoll_add(SP_Channel request, int timeout);
-    void epoll_mod(SP_Channel request, int timeout);
-    void epoll_del(SP_Channel request);
-    void add_timer(SP_Channel request, int timeout);
-    void handleExpired();
+    void epoll_add(shared_ptr<Channel> channel, int timeout);
+    void epoll_mod(shared_ptr<Channel> channel, int timeout);
+    void epoll_del(shared_ptr<Channel> channel);
+    vector<shared_ptr<Channel>> poll();
+    void add_timer(shared_ptr<Channel> channel, int timeout);
     int get_epoll_fd();
+    void handle_expired_events();
 private:
+    vector<shared_ptr<Channel>> get_ready_events(int events_num);
+
     static const int MAXFDS = 10000;
-    std::shared_ptr<HttpData> fd_http[MAXFDS];
-    std::shared_ptr<Channel>  fd_channel[MAXFDS];
-    TimerManager timermanager;
-    int fd_;
+    bool started_;
+    shared_ptr<Channel> fd_channel[MAXFDS];
+    shared_ptr<HttpData> fd_httpdata[MAXFDS];
+    TimerManager timer_manager;
+    vector<epoll_event> ready_events;
+    int epoll_fd;
 };
