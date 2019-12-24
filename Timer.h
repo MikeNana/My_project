@@ -18,10 +18,10 @@ class Channel;
 class TimerNode
 {
 public:
-    TimerNode(shared_ptr<HttpData>, int timeout);
+    TimerNode(shared_ptr<HttpData> SP_Httpdata, int timeout);
     ~TimerNode();
     TimerNode(const TimerNode& tn);
-    void updata(int timeout);
+    void update(int timeout);
     bool isValid();
     void clearReq();
     void setDeleted();
